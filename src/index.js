@@ -10,16 +10,14 @@ app.use(express.json());
 
 const users = [];
 
-// Middleware responsible for checking if account exists
+// Middleware responsible for checking if user exists
 function checksExistsUserAccount( request, response, next ) {
-  // Complete aqui
-
   const { username } = request.headers
 
-  const user = users.filter( user => { user.username === username })
+  const user = users.find( user => user.username === username )
 
   if( !user ) {
-    return response.status(400).json({error: "User doesn`t exists!"})
+    return response.status(404).json({error: "User doesn`t exists!"})
   }
 
   request.user = user
@@ -28,7 +26,6 @@ function checksExistsUserAccount( request, response, next ) {
 }
 
 app.post('/users', (request, response) => {
-  // Complete aqui
   const { name, username } = request.body
 
   const userExists = (users.some( user => user.username === username ))
@@ -41,34 +38,99 @@ app.post('/users', (request, response) => {
     name,
     username,
     id: uuidv4(),
-    todo: []
+    todos: []
   })
 
-  let user = []
+  const user = users.find( user => user.username === username )
 
-  users.forEach( u => { (u.username === username) ? user.push(u) : [] })
-
-  return response.status(200).json(user)
+  return response.status(201).json(user)
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
   // Complete aqui
+  const { user } = request
+
+  return response.status(200).json(user.todos)
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
   // Complete aqui
+  const { user } = request
+
+  const { title, deadline } = request.body
+
+  console.log(user)
+
+  const todos = user.todos
+
+  todos.push({
+    id: uuidv4(),
+    title,
+    done:false,
+    deadline: new Date(deadline),
+    created_at: new Date()
+  })
+
+  return response.status(201).json(user.todos.find(task => task.title === title))
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { id } = request.params
+  const { title, deadline } = request.body
+  const { user } = request
+
+  const ifTaskExists = (user.todos.some(tasks => tasks.id === id) )
+
+  if ( !ifTaskExists ) {
+    return response.status(404).json({error: "Task doesn't exists!"})
+  }
+
+  user.todos.forEach(task => {
+    if( task.id === id ) {
+      task.title = title
+      task.deadline = deadline
+    }
+  })
+
+  return response.status(200).send()
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { id } = request.params
+  const { user } = request
+
+  const ifTaskExists = (user.todos.some(tasks => tasks.id === id) )
+
+  if ( !ifTaskExists ) {
+    return response.status(404).json({error: "Task doesn't exists!"})
+  }
+
+  user.todos.forEach(task => {
+    if( task.id === id ) {
+      task.done = true
+    }
+  })
+
+  return response.status(200).send()
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { user } = request
+  const { id } = request.params
+
+  const ifTaskExists = (user.todos.some(tasks => tasks.id === id) )
+
+  if ( !ifTaskExists ) {
+    return response.status(404).json({error: "Task doesn't exists!"})
+  }
+
+  user.todos.forEach(task => {
+    if( task.id === id ) {
+      user.todos.splice( task, 1 )
+    }
+  })
+
+  return response.status(204).send()
 });
 
 module.exports = app;
