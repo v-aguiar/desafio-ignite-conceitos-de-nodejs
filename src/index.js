@@ -124,7 +124,6 @@ app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
 
   user.todos.forEach( task => {
     if( task.id === id ) {
-      console.log(task)
       user.todos.splice( user.todos.indexOf(task), 1 )
     }
   })
