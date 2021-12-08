@@ -59,8 +59,6 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 
   const { title, deadline } = request.body
 
-  console.log(user)
-
   const todos = user.todos
 
   todos.push({
@@ -124,9 +122,10 @@ app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
     return response.status(404).json({error: "Task doesn't exists!"})
   }
 
-  user.todos.forEach(task => {
+  user.todos.forEach( task => {
     if( task.id === id ) {
-      user.todos.splice( task, 1 )
+      console.log(task)
+      user.todos.splice( user.todos.indexOf(task), 1 )
     }
   })
 
